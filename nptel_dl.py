@@ -252,6 +252,8 @@ def ytdl_download(link: str, ytdl_opts: dict):
     """
     Download link using yt-dlp
     """
+    if not link:
+        return
     link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
     with YoutubeDL(ytdl_opts) as ytdl:
         ytdl.download(link)
@@ -261,6 +263,8 @@ def drive_download(link: str, file_path: str="", filename: str=""):
     """
     Download google drive links
     """
+    if not link:
+        return
     link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
     os.makedirs(file_path, exist_ok=True)
     output = f"{file_path}/{filename}" if filename else f"{file_path}/"
