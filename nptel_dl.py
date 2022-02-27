@@ -257,7 +257,6 @@ def ytdl_download(link: str, ytdl_opts: dict):
     """
     Download link using yt-dlp
     """
-    print_message(2, [filename, link])
     if not link:
         return
     link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
@@ -269,7 +268,6 @@ def drive_download(link: str, file_path: str="", filename: str=""):
     """
     Download google drive links
     """
-    print_message(2, [filename, link])
     if not link:
         return
     link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
@@ -295,33 +293,39 @@ def download_course(input_url: str, opts: dict) -> int:
         if required == "all":
             ytdl_opts["outtmpl"] = f"{course_dir}/syllabus.pdf"
             syllabus = get_dict(course_dict, "syllabus")
+            print_message(2, ["syllabus", syllabus])
             ytdl_download(syllabus, ytdl_opts)
             for required_ in ["books", "assignements"]:
                 required_dict = get_dict(course_dict, required_)
                 for name, link in required_dict.items():
+                    print_message(2, [name, link])
                     ytdl_opts["outtmpl"] = f"{course_dir}/{required_}/{name}.pdf"
                     ytdl_download(link, ytdl_opts)
             modules = get_dict(course_dict, "modules")
             for module in modules:
                 module_title, videos = module.values()
                 for video in videos:
-
                     video_id, video_title, yt_video_link, direct_video_link, transcript_link = video.values()
-                    ytdl_opts["outtmpl"] = f"{course_dir}/{module_title}/{video_id}. {video_title}.%(ext)s"
+                    filename = f"{video_id}. {video_title}.%(exts)"
+                    ytdl_opts["outtmpl"] = f"{course_dir}/{module_title}/{filename}"
+                    print_message(2, [filename, direct_video_link])
                     ytdl_download(direct_video_link, ytdl_opts)
                     filename = f"{video_id}. {video_title}.pdf"
                     file_path = f"{course_dir}/{module_title}"
+                    print_message(2, [filename, transcript_link])
                     drive_download(transcript_link, file_path, filename)
                     
         if required == "syllabus":
             ytdl_opts["outtmpl"] = f"{course_dir}/syllabus.pdf"
             syllabus = get_dict(course_dict, "syllabus")
+            print_message(2, ["syllabus", syllabus])
             ytdl_download(syllabus, ytdl_opts)
         if required in ["books", "transcripts", "assignements"]:
             required_dict = get_dict(course_dict, required)
             for name, link in required_dict.items():
                 file_path = f"{course_dir}/{required}"
                 filename = f"{name}.pdf" 
+                print_message(2, [filename, link])
                 if "drive.google.com" in link:
                     drive_download(link, file_path, filename)
                     continue
