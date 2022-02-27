@@ -90,7 +90,7 @@ def get_course_dict(course_data: tuple[str, str, str]):
     course_id, course_url, webpage = course_data
     soup = BeautifulSoup(webpage, "lxml")
 
-    course_title = soup.title.get_text().strip()
+    course_title = soup.title.get_text().strip().replace("/", "|")
 
     outer_div = soup.body.select_one("div.container")
     header_div = outer_div.find_next("div")
@@ -123,14 +123,20 @@ def get_course_dict(course_data: tuple[str, str, str]):
     assignements = course_div.select("div#tab3>table>tbody>tr>td>a")
     assignements_links = {}
     for assignement in assignements:
-        assignement_title = assignement.get_text().strip()
+        assignement_title = assignement.get_text().strip().replace("/", "|")
         assignements_link = assignement.get("href")
         assignements_links[assignement_title] = assignements_link
 
     transcripts = course_div.select("table#request1>tbody>tr")
     transcripts_links = {}
     for transcript in transcripts:
-        transcript_title = transcript.find_next("td").find_next("td").get_text().strip()
+        transcript_title = (
+            transcript.find_next("td")
+            .find_next("td")
+            .get_text()
+            .strip()
+            .replace("/", "|")
+        )
         try:
             transcript_link = transcript.select_one("a").get("href")
         except:
@@ -139,7 +145,9 @@ def get_course_dict(course_data: tuple[str, str, str]):
     books = course_div.select("div#download_books>table>tbody>tr")
     books_links = {}
     for book in books:
-        book_title = book.find_next("td").find_next("td").get_text().strip()
+        book_title = (
+            book.find_next("td").find_next("td").get_text().strip().replace("/", "|")
+        )
         try:
             book_link = book.select_one("a").get("href")
         except:
@@ -153,22 +161,22 @@ def get_course_dict(course_data: tuple[str, str, str]):
             "books": books_links,
         }
     )
-
+    print(len(transcripts))
     for module in modules:
         module_tag = module.a
-        module_title = module_tag.get_text().strip()
+        module_title = module_tag.get_text().strip().replace("/", "|")
         videos_list = []
         yt = {}
         direct = {}
         if module.get("id"):
             video_tag = module_tag
-            video_title = video_tag.get_text().strip()
+            video_title = video_tag.get_text().strip().replace("/", "|")
             video = video_tag.get("onclick")[17:]
             video_id, yt_video_id, direct_video_link = eval(video)
             yt_video_link = f"{YOUTUBE}{yt_video_id}" if yt_video_id else ""
             direct_video_link = (
                 f"{ARCHIVE_WEBSITE}{direct_video_link}"
-                if direct_video_link and "livession" not in direct_video_link
+                if direct_video_link and "livesession" not in direct_video_link
                 else yt_video_link
             )
             videos_dict = {
@@ -185,21 +193,25 @@ def get_course_dict(course_data: tuple[str, str, str]):
             videos = module.select("ul>li")
             for v in videos:
                 video_tag = v.a
-                video_title = video_tag.get_text().strip()
+                video_title = video_tag.get_text().strip().replace("/", "|")
                 video = video_tag.get("onclick")[17:]
                 video_id, yt_video_id, direct_video_link = eval(video)
                 yt_video_link = f"{YOUTUBE}{yt_video_id}" if yt_video_id else ""
                 direct_video_link = (
                     f"{ARCHIVE_WEBSITE}{direct_video_link}"
-                    if direct_video_link and "livession" not in direct_video_link
+                    if direct_video_link and "livesession" not in direct_video_link
                     else yt_video_link
                 )
+                try:
+                    transcript_link = list(transcripts_links.values())[video_id - 1]
+                except:
+                    transcript_link = ""
                 videos_dict = {
                     "video_id": video_id,
                     "video_title": video_title,
                     "yt_video_link": yt_video_link,
                     "direct_video_link": direct_video_link,
-                    "transcript": list(transcripts_links.values())[video_id - 1],
+                    "transcript": transcript_link,
                 }
                 videos_list.append(videos_dict)
                 yt[video_title] = yt_video_link
@@ -299,9 +311,8 @@ def drive_download(link: str, file_path: str = "", filename: str = ""):
     link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
     os.makedirs(file_path, exist_ok=True)
     output = f"{file_path}/{filename}" if filename else f"{file_path}/"
-    try:
-        gdown.download(link, output, fuzzy=True)
-    except:
+    file = gdown.download(link, output, fuzzy=True)
+    if not file or ".pdf" not in file:
         print_message(3, [filename, link])
         logerror(3, [f"{file_path}/{filename}", link])
 
@@ -329,7 +340,12 @@ def download_course(input_url: str, opts: dict) -> int:
             for required_ in ["books", "assignements"]:
                 required_dict = get_dict(course_dict, required_)
                 for name, link in required_dict.items():
-                    ytdl_opts["outtmpl"] = f"{course_dir}/{required_}/{name}.pdf"
+                    file_path = f"{course_dir}/{required}"
+                    filename = f"{name}.pdf"
+                    if "drive.google.com" in link:
+                        drive_download(link, file_path, filename)
+                        continue
+                    ytdl_opts["outtmpl"] = f"{file_path}/{filename}"
                     ytdl_download(link, ytdl_opts)
             modules = get_dict(course_dict, "modules")
             for module in modules:
