@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = "1.7"
+VERSION = "1.8"
 DESCRIPTION = "Downloader for NPTEL"
 LONG_DESC = open("./README.md", "r").read()
 URL = "https://github.com/deshdeepak1/nptel-dl"
