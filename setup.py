@@ -1,16 +1,16 @@
 from setuptools import setup, find_packages
 
-VERSION = "0.1.0"
+VERSION = "1.0"
 DESCRIPTION = "Downloader for NPTEL"
 LONG_DESC = open("./README.md", "r").read()
 URL = "https://github.com/deshdeepak1/nptel-dl"
 AUTHOR = "Deshdeepak"
 AUTHOR_EMAIL = "rkdeshdeepak1@gmail.com"
 KEYWORDS = "nptel NPTEL dl download downloader"
-LICENSE = "UNLICENSE"
+LICENSE = "MIT"
 CLASSIFIERS = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: UNLICENSE",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 setup(
@@ -18,6 +18,7 @@ setup(
     version=VERSION,
     description=DESCRIPTION,
     long_description=LONG_DESC,
+    long_description_content_type="text/markdown",
     url=URL,
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
