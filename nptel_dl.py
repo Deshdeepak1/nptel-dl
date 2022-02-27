@@ -9,6 +9,7 @@ from yt_dlp import YoutubeDL
 from bs4 import BeautifulSoup
 
 
+WEBSITE = "https://nptel.ac.in"
 ARCHIVE_WEBSITE = "https://archive.nptel.ac.in"
 YOUTUBE = "https://youtube.com/watch?v="
 
@@ -251,11 +252,16 @@ def ytdl_download(link: str, ytdl_opts: dict):
     """
     Download link using yt-dlp
     """
+    link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
     with YoutubeDL(ytdl_opts) as ytdl:
         ytdl.download(link)
 
 
 def drive_download(link: str, file_path: str="", filename: str=""):
+    """
+    Download google drive links
+    """
+    link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
     os.makedirs(file_path, exist_ok=True)
     output = f"{file_path}/{filename}" if filename else f"{file_path}/"
     gdown.download(link, output, fuzzy=True)
