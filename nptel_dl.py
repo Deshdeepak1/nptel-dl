@@ -306,7 +306,7 @@ def download_course(input_url: str, opts: dict) -> int:
                 module_title, videos = module.values()
                 for video in videos:
                     video_id, video_title, yt_video_link, direct_video_link, transcript_link = video.values()
-                    filename = f"{video_id}. {video_title}.%(exts)"
+                    filename = f"{video_id}. {video_title}.%(ext)s"
                     ytdl_opts["outtmpl"] = f"{course_dir}/{module_title}/{filename}"
                     print_message(2, [filename, direct_video_link])
                     ytdl_download(direct_video_link, ytdl_opts)
