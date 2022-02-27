@@ -400,7 +400,7 @@ def main():
         return
     required_list = []
     if args.all:
-        download_courses(input_urls, {"required": "all"})
+        download_courses(input_urls, {"required": ["all"]})
         return
     if args.videos:
         required_list.append("videos")
