@@ -14,15 +14,20 @@ ARCHIVE_WEBSITE = "https://archive.nptel.ac.in"
 YOUTUBE = "https://youtube.com/watch?v="
 
 DOWNLOAD_SUCCESS_MSG = "Download successfull: {}"
+DOWNLOADING_MSG = "Downloading {}: {}"
 INVALID_URL_MSG = "ERROR: {} is not a valid url"
-MESSAGES = [DOWNLOAD_SUCCESS_MSG, INVALID_URL_MSG]
+MESSAGES = [
+    DOWNLOAD_SUCCESS_MSG,
+    INVALID_URL_MSG,
+    DOWNLOADING_MSG
+]
 
 
-def print_message(status: int, url: str):
+def print_message(status: int, messages: list[str]):
     """
     Print message from message list depending on status.
     """
-    print(MESSAGES[status].format(url))
+    print(MESSAGES[status].format(*messages))
 
 
 def write_json(dict_: dict, filename: str):
@@ -83,7 +88,7 @@ def get_course_dict(course_data: tuple[str, str, str]):
     discipline = infos[1].get_text().strip()
     subject_title = infos[2].get_text().strip()
     syllabus_pdf = infos[3].get("href")
-    syllabus_pdf = f"{ARCHIVE_WEBSITE}{syllabus_pdf}"
+    syllabus_pdf = f"{ARCHIVE_WEBSITE}{syllabus_pdf}" if syllabus_pdf else ""
     institute = infos[4].span.get_text().strip()
     course_date = infos[5].span.get_text().strip()
 
@@ -148,8 +153,8 @@ def get_course_dict(course_data: tuple[str, str, str]):
             video_title = video_tag.get_text().strip()
             video = video_tag.get("onclick")[17:]
             video_id, yt_video_id, direct_video_link = eval(video)
-            yt_video_link = f"{YOUTUBE}{yt_video_id}"
-            direct_video_link = f"{ARCHIVE_WEBSITE}{direct_video_link}"
+            yt_video_link = f"{YOUTUBE}{yt_video_id}" if yt_video_id else ""
+            direct_video_link = f"{ARCHIVE_WEBSITE}{direct_video_link}" if direct_video_link else yt_video_link
             videos_dict = {
                 "video_id": video_id,
                 "video_title": video_title,
@@ -167,8 +172,8 @@ def get_course_dict(course_data: tuple[str, str, str]):
                 video_title = video_tag.get_text().strip()
                 video = video_tag.get("onclick")[17:]
                 video_id, yt_video_id, direct_video_link = eval(video)
-                yt_video_link = f"{YOUTUBE}{yt_video_id}"
-                direct_video_link = f"{ARCHIVE_WEBSITE}{direct_video_link}"
+                yt_video_link = f"{YOUTUBE}{yt_video_id}" if yt_video_id else ""
+                direct_video_link = f"{ARCHIVE_WEBSITE}{direct_video_link}" if direct_video_link else yt_video_link
                 videos_dict = {
                     "video_id": video_id,
                     "video_title": video_title,
@@ -213,7 +218,7 @@ def dump_jsons(input_urls: list[str], dict_name: str, single: bool):
     single_output_dict = {}
     for input_url, course_dict in courses:
         if not course_dict:
-            print_message(1, input_url)
+            print_message(1, [input_url])
             continue
         output_dict = get_dict(course_dict, dict_name)
         if not single:
@@ -233,7 +238,7 @@ def write_jsons(input_urls: list[str], dict_name: str, single: bool):
     course_ids = []
     for input_url, course_dict in courses:
         if not course_dict:
-            print_message(1, input_url)
+            print_message(1, [ input_url ])
             continue
         course_id = course_dict["course_id"]
         output_dict = get_dict(course_dict, dict_name)
@@ -252,6 +257,7 @@ def ytdl_download(link: str, ytdl_opts: dict):
     """
     Download link using yt-dlp
     """
+    print_message(2, [filename, link])
     if not link:
         return
     link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
@@ -263,6 +269,7 @@ def drive_download(link: str, file_path: str="", filename: str=""):
     """
     Download google drive links
     """
+    print_message(2, [filename, link])
     if not link:
         return
     link = link.replace(WEBSITE, ARCHIVE_WEBSITE)
@@ -298,6 +305,7 @@ def download_course(input_url: str, opts: dict) -> int:
             for module in modules:
                 module_title, videos = module.values()
                 for video in videos:
+
                     video_id, video_title, yt_video_link, direct_video_link, transcript_link = video.values()
                     ytdl_opts["outtmpl"] = f"{course_dir}/{module_title}/{video_id}. {video_title}.%(ext)s"
                     ytdl_download(direct_video_link, ytdl_opts)
@@ -328,7 +336,7 @@ def download_courses(input_urls: list[str], opts: dict):
     """
     for input_url in input_urls:
         download_status = download_course(input_url, opts)
-        print_message(download_status, input_url)
+        print_message(download_status, [ input_url ])
 
 
 def main():
